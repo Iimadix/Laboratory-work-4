@@ -1,0 +1,95 @@
+#define _USE_MATH_DEFINES
+#include <iostream>
+#include <cmath>
+
+// Функция, задающая интегрируемую функцию
+double myFunction(double x) 
+{
+    return sin(x);
+}
+
+// Аналитически вычисленный интеграл функции
+double analyticalIntegral(double a, double b) 
+{
+    return -cos(b) + cos(a);
+}
+
+// Метод прямоугольников
+double rectangleMethod(double (*f)(double), double a, double b, int n) 
+{
+    double h = (b - a) / n; // Шаг разбиения
+    double sum = 0.0;
+
+    for (int i = 0; i < n; ++i) 
+    {
+        double x = a + i * h;
+        sum += f(x); // Значение функции в левом конце отрезка
+    }
+
+    return sum * h; // Итоговая площадь
+}
+
+// Метод трапеций
+double trapezoidalMethod(double (*f)(double), double a, double b, int n)
+{
+    double h = (b - a) / n; // Шаг разбиения
+    double sum = 0.5 * (f(a) + f(b)); // Полусумма на краях отрезка
+
+    for (int i = 1; i < n; ++i) 
+    {
+        double x = a + i * h;
+        sum += f(x); // Значения функции внутри отрезка
+    }
+
+    return sum * h; // Итоговая площадь
+}
+
+// Метод Симпсона
+double simpsonMethod(double (*f)(double), double a, double b, int n)
+{
+    if (n % 2 != 0)
+    { // Проверяем, что n чётное (требование метода Симпсона)
+        std::cout << "Ошибка: n должно быть четным для метода Симпсона." << std::endl;
+        return 0.0; // Если n нечётное, возвращаем 0
+    }
+
+    double h = (b - a) / n; // Вычисляем шаг разбиения
+    double sum = f(a) + f(b); // Суммируем значения функции на границах отрезка
+
+    // Добавляем значения функции в чётных и нечётных точках
+    for (int i = 1; i < n; ++i) 
+    { // Цикл по всем точкам (кроме концов)
+        double x = a + i * h;          // Текущая точка
+        sum += (i % 2 == 0 ? 2 : 4) * f(x); // Умножаем на 4 для нечётных и на 2 для чётных
+    }
+
+    return sum * h / 3.0; // Итоговая площадь по формуле Симпсона
+}
+
+int main() 
+{
+    setlocale(LC_ALL, "RUS");
+    // Параметры интегрирования
+    double a = 0.0;   // Начало отрезка
+    double b = M_PI;  // Конец отрезка
+    int n = 100;      // Количество разбиений
+
+    // Вычисление численных интегралов
+    double rectResult = rectangleMethod(myFunction, a, b, n);
+    double trapResult = trapezoidalMethod(myFunction, a, b, n);
+    double simpResult = simpsonMethod(myFunction, a, b, n);
+
+    // Аналитическое значение интеграла
+    double exactResult = analyticalIntegral(a, b);
+
+    // Вычисление погрешностей
+    double rectError = fabs(rectResult - exactResult);
+    double trapError = fabs(trapResult - exactResult);
+    double simpError = fabs(simpResult - exactResult);
+
+    // Вывод результатов
+    std::cout << "Аналитическое значение интеграла: " << exactResult << "\n";
+    std::cout << "Метод прямоугольников: " << rectResult << ", погрешность: " << rectError << "\n";
+    std::cout << "Метод трапеций: " << trapResult << ", погрешность: " << trapError << "\n";
+    std::cout << "Метод Симпсона: " << simpResult << ", погрешность: " << simpError << "\n";
+}
